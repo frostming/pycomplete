@@ -1,4 +1,3 @@
-import argparse
 import hashlib
 import os
 import posixpath
@@ -8,7 +7,7 @@ import sys
 from typing import Any, Optional
 
 from pycomplete.templates import SUPPORTED_SHELLS, TEMPLATES
-from pycomplete.getters import ArgparseGetter
+from pycomplete.getters import GETTERS
 
 __version__ = "0.1.0"
 
@@ -30,11 +29,16 @@ class Completer:
     """
 
     def __init__(self, cli: Any) -> None:
-        if isinstance(cli, argparse.ArgumentParser):
-            self.getter = ArgparseGetter(cli)
+        for getter in GETTERS:
+            try:
+                self.getter = getter(cli)
+                break
+            except ValueError:
+                pass
         else:
             raise NotImplementedError(
-                f"CLI object type {type(cli)} is not supported yet."
+                f"CLI object type {type(cli)} is not supported yet. "
+                "It must be one of (`argparse.ArgumentParser`, `click.Command`)."
             )
 
     def render(self, shell: Optional[str] = None) -> str:

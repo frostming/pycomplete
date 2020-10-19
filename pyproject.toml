@@ -10,9 +10,10 @@ python_requires = ">=3.6"
 readme = "README.md"
 
 [tool.pdm.dependencies]
-pytest = "<7.0.0,>=6.1.1"
 
 [tool.pdm.dev-dependencies]
+pytest = "<7.0.0,>=6.1.1"
+click = "<8.0.0,>=7.1.2"
 
 [tool.pdm.cli]
 pycomplete = "pycomplete.__main__:main"

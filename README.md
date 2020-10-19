@@ -90,13 +90,17 @@ completer = Completer(parser)
 print(completer.render())
 ```
 
+`Completer` accepts different types of objects according to the CLI framework. For `argparse`, `argparse.ArgumentParser` is expected while
+for `click`, either `click.Command` or `click.Context` is OK. `pycomplete` knows what to do based on which type of the first argument is given.
+
 ## How does it differ from `argcomplete`?
 
 `argcomplete`, together with `click-completion`, can also generate scripts for shell completion. However, they work in a different way
 that commands and options are retrieved on the fly when they are requested by a matching token. This brings a performance shrinkage
-when it is expensive to import the CLI app. `pycomplete` produces **static and fixed** scripts which contain all required information in
-themselves. The disadvantage is also obvious -- users must regenerate the script when the commands and/or options are updated. Fortunately,
-it shouldn't be a problem in most package managers like `homebrew`, where completion scripts are part of the package and are bundled with it.
+when it is expensive to import the CLI app. In the other side, `pycomplete` produces **static and fixed** scripts which contain all required information
+within themselves. Plus, `argcomplete` and `click-completion` both work for specific framework. One may notice the disadvantage of static completion
+is also obvious -- users must regenerate the script when the commands and/or options are updated. Fortunately, it shouldn't be a problem
+in most package managers like `homebrew`, where completion scripts are part of the package and are bundled with it.
 
 ## Limitations
 
@@ -106,5 +110,5 @@ in this case.
 ## Supported CLI objects
 
 - [x] `argparse.ArgumentParser`
-- [ ] `click.Command`
+- [x] `click.Command`, `click.Context`
 - [ ] More to be added
