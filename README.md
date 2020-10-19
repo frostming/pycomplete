@@ -2,6 +2,11 @@
 
 A Python library to generate static completion scripts for your CLI app
 
+![Tests](https://github.com/frostming/pycomplete/workflows/Tests/badge.svg)
+[![PyPI](https://img.shields.io/pypi/v/pycomplete)](https://pypi.org/project/pycomplete)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pycomplete)](https://pypi.org/project/pycomplete)
+![Supported Shells - bash|zsh|fish](https://img.shields.io/badge/shell-bash%7Czsh%7Cfish-yellow)
+
 ## Installation
 
 `pycomplete` requires Python 3.6 or higher, you can install it via PyPI:
@@ -12,9 +17,13 @@ $ pip install pycomplete
 
 ## Usage
 
-With `pycomplete`, one can generate a completion script for CLI application given by an instance of
-`argparse.ArgumentParser` that is compatible with a given shell. The script outputs the result
-onto `stdout`, allowing one to re-direct the output to the file of their choosing.
+With `pycomplete`, one can generate a completion script for CLI application that is compatible with a given shell.
+The script outputs the result onto `stdout`, allowing one to re-direct the output to the file of their choosing.
+
+`pycomplete` accepts different types of objects depending on which CLI framework you are using.
+For `argparse`, `argparse.ArgumentParser` is expected while for `click`, either `click.Command` or `click.Context` is OK.
+`pycomplete` knows what to do smartly.
+
 Where you place the file will depend on which shell, and which operating system you are using.
 Your particular configuration may also determine where these scripts need to be placed.
 
@@ -90,9 +99,6 @@ completer = Completer(parser)
 print(completer.render())
 ```
 
-`Completer` accepts different types of objects according to the CLI framework. For `argparse`, `argparse.ArgumentParser` is expected while
-for `click`, either `click.Command` or `click.Context` is OK. `pycomplete` knows what to do based on which type of the first argument is given.
-
 ## How does it differ from `argcomplete`?
 
 `argcomplete`, together with `click-completion`, can also generate scripts for shell completion. However, they work in a different way
@@ -107,7 +113,7 @@ in most package managers like `homebrew`, where completion scripts are part of t
 Only options and subcommands are autocompleted, positional arguments are not completed since user usually expects the path sugguestion to work
 in this case.
 
-## Supported CLI objects
+## Supported CLI Frameworks
 
 - [x] `argparse.ArgumentParser`
 - [x] `click.Command`, `click.Context`
