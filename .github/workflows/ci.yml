@@ -17,13 +17,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set PY
         run: |
-          echo "::set-env name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
-          echo "::set-env name=PIP_CACHE_DIR::$(pip cache dir)"
+          echo "PY=$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')" >> $GITHUB_ENV
+          echo "PIP_CACHE_DIR=$(pip cache dir)" >> $GITHUB_ENV
       - name: Cache PIP
         uses: actions/cache@v1
         with:
