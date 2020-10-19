@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  release-pypi:
+    name: release-pypi
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+          architecture: "x64"
+      - name: Build artifacts
+        run: |
+          pip install build
+          python -m build --sdist --wheel -o dist/ .
+
+      - name: Test build
+        run: |
+          pip install dist/*.whl
+          pycompleter --help
+      - name: Upload to Pypi
+        run: |
+          pip install twine
+          twine upload --username __token__ --password ${{ secrets.PYPI_TOKEN }} dist/*
