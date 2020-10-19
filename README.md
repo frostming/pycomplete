@@ -27,6 +27,8 @@ For `argparse`, `argparse.ArgumentParser` is expected while for `click`, either 
 Where you place the file will depend on which shell, and which operating system you are using.
 Your particular configuration may also determine where these scripts need to be placed.
 
+Note that `pycomplete` needs to be installed in the same environment as the target CLI app to work properly.
+
 Here are some common set ups for the three supported shells under Unix and similar operating systems (such as GNU/Linux).
 
 ### BASH

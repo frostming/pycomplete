@@ -7,7 +7,7 @@ import sys
 from typing import Any, Optional
 
 from pycomplete.templates import SUPPORTED_SHELLS, TEMPLATES
-from pycomplete.getters import GETTERS
+from pycomplete.getters import GETTERS, NotSupportedError
 
 __version__ = "0.1.0"
 
@@ -33,12 +33,15 @@ class Completer:
             try:
                 self.getter = getter(cli)
                 break
-            except ValueError:
+            except NotSupportedError:
                 pass
         else:
             raise NotImplementedError(
                 f"CLI object type {type(cli)} is not supported yet. "
-                "It must be one of (`argparse.ArgumentParser`, `click.Command`)."
+                "It must be one of (`argparse.ArgumentParser`, `click.Command`).\n"
+                "It may be also because requirements are not met to detect a specified "
+                "framework. Please make sure you install pycomplete in the same "
+                "environment as the target CLI app."
             )
 
     def render(self, shell: Optional[str] = None) -> str:

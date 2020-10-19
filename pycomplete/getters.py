@@ -8,6 +8,10 @@ except ModuleNotFoundError:
     click = None
 
 
+class NotSupportedError(Exception):
+    pass
+
+
 class BaseGetter(abc.ABC):
     """Abstract base class for getting metadata from a CLI main object, which may be
 
@@ -40,7 +44,7 @@ class ArgparseGetter(BaseGetter):
 
     def __init__(self, parser: argparse.ArgumentParser) -> None:
         if not isinstance(parser, argparse.ArgumentParser):
-            raise ValueError("Not supported")
+            raise NotSupportedError("Not supported")
         self._parser = parser
 
     def get_options(self) -> Iterable[Tuple[str, str]]:
@@ -81,7 +85,7 @@ if click:
 
         def __init__(self, cli: Union[click.Command, click.Context]) -> None:
             if not isinstance(cli, (click.Command, click.Context)):
-                raise ValueError("Not supported")
+                raise NotSupportedError("Not supported")
             self._cli = self._get_top_command(cli)
 
         @staticmethod
