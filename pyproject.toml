@@ -10,6 +10,7 @@ python_requires = ">=3.6"
 readme = "README.md"
 
 [tool.pdm.dependencies]
+pytest = "<7.0.0,>=6.1.1"
 
 [tool.pdm.dev-dependencies]
 

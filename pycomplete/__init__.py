@@ -129,7 +129,7 @@ class Completer:
         for name, command in self.getter.get_commands().items():
             command_options = []
             commands_options_descriptions[name] = {}
-            command_description = command.description
+            command_description = command.help
             commands_descriptions.append(self._zsh_describe(name, command_description))
 
             for option_name, option_help in command.get_options():
@@ -200,8 +200,8 @@ class Completer:
         for name, command in self.getter.get_commands().items():
             command_options = []
             commands_options_descriptions[name] = {}
-            command_description = command.description
-            commands_descriptions.append(self._zsh_describe(name, command_description))
+            command_description = command.help
+            commands_descriptions[name] = command_description
 
             for option_name, option_help in command.get_options():
                 command_options.append(option_name)
