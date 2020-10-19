@@ -47,7 +47,7 @@ def test_render_fish_completion(argument_parser):
 
 def test_unsupported_shell_type(argument_parser, monkeypatch):
     completer = Completer(argument_parser)
-    monkeypatch.delenv("SHELL")
+    monkeypatch.delenv("SHELL", raising=False)
     with pytest.raises(RuntimeError):
         completer.get_shell_type()
     monkeypatch.setenv("SHELL", "tcsh")
