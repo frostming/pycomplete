@@ -1,6 +1,6 @@
 # pycomplete
 
-A Python library to generate static completion scripts for argparse
+A Python library to generate static completion scripts for your CLI app
 
 ## Installation
 
@@ -90,9 +90,9 @@ completer = Completer(parser)
 print(completer.render())
 ```
 
-## How does it differ from `pycompletelete`?
+## How does it differ from `argcomplete`?
 
-`pycompletelete`, together with `click-completion`, can also generate scripts for shell completion. However, they work in a different way
+`argcomplete`, together with `click-completion`, can also generate scripts for shell completion. However, they work in a different way
 that commands and options are retrieved on the fly when they are requested by a matching token. This brings a performance shrinkage
 when it is expensive to import the CLI app. `pycomplete` produces **static and fixed** scripts which contain all required information in
 themselves. The disadvantage is also obvious -- users must regenerate the script when the commands and/or options are updated. Fortunately,
