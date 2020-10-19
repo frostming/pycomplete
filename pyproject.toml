@@ -1,0 +1,21 @@
+[tool]
+[tool.pdm]
+name = "pycomplete"
+version = {from = "pycomplete/__init__.py"}
+description = "A Python library to generate static completion scripts for your CLI app"
+author = "Frost Ming <mianghong@gmail.com>"
+license = "BSD-3-Clause"
+homepage = "https://github.com/frostming/pycomplete"
+python_requires = ">=3.6"
+readme = "README.md"
+
+[tool.pdm.dependencies]
+
+[tool.pdm.dev-dependencies]
+
+[tool.pdm.cli]
+pycomplete = "pycomplete.__main__:main"
+
+[build-system]
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
