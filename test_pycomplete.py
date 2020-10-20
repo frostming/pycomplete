@@ -3,7 +3,7 @@ import click
 import click.testing
 import pytest
 
-from pycomplete import Completer
+from pycomplete import Completer, NotSupportedError
 
 
 @pytest.fixture()
@@ -67,6 +67,13 @@ def test_render_fish_completion(cli):
     assert "-l all -d 'Include hidden files'" in output
 
 
+def test_render_powershell_completion(cli):
+    completer = Completer(cli)
+    output = completer.render_powershell()
+    assert '$opts = @("--file")' in output
+    assert '"list" { $opts = @("--all") }' in output
+
+
 def test_unsupported_shell_type(cli, monkeypatch):
     completer = Completer(cli)
     monkeypatch.delenv("SHELL", raising=False)
@@ -76,6 +83,11 @@ def test_unsupported_shell_type(cli, monkeypatch):
     assert completer.get_shell_type() == "tcsh"
     with pytest.raises(ValueError):
         completer.render()
+
+
+def test_unsupported_framework():
+    with pytest.raises(NotSupportedError):
+        Completer(object())
 
 
 def test_click_integration(click_command, monkeypatch):

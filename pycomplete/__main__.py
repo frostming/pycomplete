@@ -22,7 +22,7 @@ def main():
     import_name, attr_name = obj_str.split(":")
     cli = getattr(importlib.import_module(import_name), attr_name)
     completer = Completer(cli)
-    return completer.render(args.shell)
+    print(completer.render(args.shell))
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 import pkgutil
 from string import Template as _Template
 
-SUPPORTED_SHELLS = ("bash", "zsh", "fish")
+SUPPORTED_SHELLS = ("bash", "zsh", "fish", "powershell")
 
 
 class Template(_Template):
