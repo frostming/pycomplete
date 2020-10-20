@@ -110,6 +110,7 @@ class Completer:
                 "coms": " ".join(commands),
                 "command_list": "\n".join(command_list),
                 "compdefs": compdefs,
+                "version": __version__
             }
         )
 
@@ -182,6 +183,7 @@ class Completer:
                 "coms": " ".join(sorted(commands_descriptions)),
                 "command_list": "\n".join(command_list),
                 "compdefs": compdefs,
+                "version": __version__
             }
         )
 
@@ -269,6 +271,7 @@ class Completer:
                 "opts": "\n".join(opts),
                 "cmds": "\n".join(cmds),
                 "cmds_opts": "\n".join(cmds_opts),
+                "version": __version__
             }
         )
 
@@ -311,6 +314,7 @@ class Completer:
                 "opts": opts,
                 "coms": coms,
                 "command_list": "\n".join(command_list),
+                "version": __version__
             }
         )
 
