@@ -5,7 +5,7 @@ A Python library to generate static completion scripts for your CLI app
 ![Tests](https://github.com/frostming/pycomplete/workflows/Tests/badge.svg)
 [![PyPI](https://img.shields.io/pypi/v/pycomplete)](https://pypi.org/project/pycomplete)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pycomplete)](https://pypi.org/project/pycomplete)
-![Supported Shells - bash|zsh|fish](https://img.shields.io/badge/shell-bash%7Czsh%7Cfish-yellow)
+![Supported Shells - bash|zsh|fish|powershell](https://img.shields.io/badge/shell-bash%7Czsh%7Cfish%7Cpowershell-yellow)
 
 ## Installation
 
@@ -83,6 +83,33 @@ $ exec zsh
 
 For the new completions to take affect.
 
+### Powershell
+
+There is no default location for completion scripts on Powershell. One may need to execute the scripts in their profile:
+
+```powershell
+PS > mkdir $PROFILE\..\Completions
+PS > echo @'
+Get-ChildItem "$PROFILE\..\Completions\" | ForEach-Object {
+    . $_.FullName
+}
+'@ | Out-File -Append -Encoding utf8 $PROFILE
+```
+
+Make sure you set the proper [Execution Policy](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy):
+
+```powershell
+PS > Set-ExecutionPolicy Unrestricted -Scope CurrentUser
+```
+
+Run command to generate script:
+
+```powershell
+PS > pycomplete "myscript:parser" powershell | Out-File -Encoding utf8 $PROFILE\..\Completions\myscript_completion.ps1
+```
+
+You may have to log out and log back in to your shell session for the changes to take effect.
+
 ### CUSTOM LOCATIONS
 
 Alternatively, you could save these files to the place of your choosing, such as a custom directory inside your \$HOME. Doing so will
@@ -100,6 +127,8 @@ from mypackage.cli import parser
 completer = Completer(parser)
 print(completer.render())
 ```
+
+See `examples/` folder for full examples of working apps.
 
 ## How does it differ from `argcomplete`?
 

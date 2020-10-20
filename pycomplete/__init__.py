@@ -9,7 +9,7 @@ from typing import Any, Optional
 from pycomplete.templates import SUPPORTED_SHELLS, TEMPLATES
 from pycomplete.getters import GETTERS, NotSupportedError
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 
 class Completer:
@@ -36,7 +36,7 @@ class Completer:
             except NotSupportedError:
                 pass
         else:
-            raise NotImplementedError(
+            raise NotSupportedError(
                 f"CLI object type {type(cli)} is not supported yet. "
                 "It must be one of (`argparse.ArgumentParser`, `click.Command`).\n"
                 "It may be also because requirements are not met to detect a specified "
@@ -110,6 +110,7 @@ class Completer:
                 "coms": " ".join(commands),
                 "command_list": "\n".join(command_list),
                 "compdefs": compdefs,
+                "version": __version__
             }
         )
 
@@ -182,6 +183,7 @@ class Completer:
                 "coms": " ".join(sorted(commands_descriptions)),
                 "command_list": "\n".join(command_list),
                 "compdefs": compdefs,
+                "version": __version__
             }
         )
 
@@ -269,10 +271,52 @@ class Completer:
                 "opts": "\n".join(opts),
                 "cmds": "\n".join(cmds),
                 "cmds_opts": "\n".join(cmds_opts),
+                "version": __version__
             }
         )
 
         return output
+
+    def render_powershell(self) -> str:
+        template = TEMPLATES["powershell"]
+
+        script_path = posixpath.realpath(sys.argv[0])
+        script_name = os.path.basename(script_path)
+
+        function = self._generate_function_name(script_name, script_path)
+
+        commands = []
+        global_options = set()
+        commands_options = {}
+        for option, _ in self.getter.get_options():
+            global_options.add(option)
+
+        for name, command in self.getter.get_commands().items():
+            command_options = []
+            commands.append(name)
+
+            for option, _ in command.get_options():
+                command_options.append(option)
+
+            commands_options[name] = command_options
+
+        opts = ", ".join(f'"{option}"' for option in global_options)
+        coms = ", ".join(f'"{cmd}"' for cmd in commands)
+        command_list = []
+        for name, options in commands_options.items():
+            cmd_opts = ", ".join(f'"{option}"' for option in options)
+            command_list.append(f'                "{name}" {{ $opts = @({cmd_opts}) }}')
+
+        return template.safe_substitute(
+            {
+                "script_name": script_name,
+                "function": function,
+                "opts": opts,
+                "coms": coms,
+                "command_list": "\n".join(command_list),
+                "version": __version__
+            }
+        )
 
     def get_shell_type(self) -> str:
         """This is a simple but working implementation to find the current shell in use.
