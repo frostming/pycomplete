@@ -5,7 +5,7 @@ A Python library to generate static completion scripts for your CLI app
 ![Tests](https://github.com/frostming/pycomplete/workflows/Tests/badge.svg)
 [![PyPI](https://img.shields.io/pypi/v/pycomplete)](https://pypi.org/project/pycomplete)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pycomplete)](https://pypi.org/project/pycomplete)
-![Supported Shells - bash|zsh|fish](https://img.shields.io/badge/shell-bash%7Czsh%7Cfish-yellow)
+![Supported Shells - bash|zsh|fish|powershell](https://img.shields.io/badge/shell-bash%7Czsh%7Cfish%7Cpowershell-yellow)
 
 ## Installation
 
