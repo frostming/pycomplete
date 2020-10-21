@@ -4,12 +4,49 @@ import posixpath
 import re
 import subprocess
 import sys
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from pycomplete.templates import SUPPORTED_SHELLS, TEMPLATES
 from pycomplete.getters import GETTERS, NotSupportedError
 
 __version__ = "0.2.0"
+
+
+def _get_prog_name(module: Optional[str] = None) -> List[str]:
+    if not module:
+        return [os.path.basename(os.path.realpath(sys.argv[0]))]
+
+    try:
+        import importlib.metadata as imp_metadata
+    except ModuleNotFoundError:
+        try:
+            import importlib_metadata as imp_metadata
+        except ModuleNotFoundError:
+            imp_metadata = None
+    try:
+        import pkg_resources
+    except ModuleNotFoundError:
+        try:
+            from pip._vendor import pkg_resources
+        except ModuleNotFoundError:
+            pkg_resources = None
+
+    result = []
+
+    if imp_metadata:
+        for dist in imp_metadata.distributions():
+            for entry_point in dist.entry_points:
+                entry_module, _, _ = entry_point.value.partition(":")
+                if entry_point.group == "console_scripts" and entry_module == module:
+                    result.append(entry_point.name)
+    elif pkg_resources:
+        for dist in pkg_resources.working_set:
+            scripts = dist.get_entry_map().get("console_scripts") or {}
+            for _, entry_point in scripts.items():
+                if entry_point.module_name == module:
+                    result.append(entry_point.name)
+    # Fallback to sys.argv[0]
+    return result or [os.path.basename(os.path.realpath(sys.argv[0]))]
 
 
 class Completer:
@@ -28,7 +65,7 @@ class Completer:
     Then save the result into a file that is read by the shell's autocomplete engine.
     """
 
-    def __init__(self, cli: Any) -> None:
+    def __init__(self, cli: Any, prog: Optional[str] = None) -> None:
         for getter in GETTERS:
             try:
                 self.getter = getter(cli)
@@ -43,6 +80,11 @@ class Completer:
                 "framework. Please make sure you install pycomplete in the same "
                 "environment as the target CLI app."
             )
+        if prog is None:
+            prog = _get_prog_name(getattr(cli, "__module__", None))
+        else:
+            prog = [prog]
+        self.prog = prog
 
     def render(self, shell: Optional[str] = None) -> str:
         if shell is None:
@@ -56,10 +98,9 @@ class Completer:
     def render_bash(self) -> str:
         template = TEMPLATES["bash"]
 
-        script_path = posixpath.realpath(sys.argv[0])
-        script_name = os.path.basename(script_path)
-        aliases = [script_name, script_path]
-
+        script_path = os.path.realpath(sys.argv[0])
+        script_name = self.prog[0]
+        aliases = self.prog
         function = self._generate_function_name(script_name, script_path)
 
         commands = []
@@ -110,7 +151,7 @@ class Completer:
                 "coms": " ".join(commands),
                 "command_list": "\n".join(command_list),
                 "compdefs": compdefs,
-                "version": __version__
+                "version": __version__,
             }
         )
 
@@ -120,8 +161,7 @@ class Completer:
         template = TEMPLATES["zsh"]
 
         script_path = posixpath.realpath(sys.argv[0])
-        script_name = os.path.basename(script_path)
-        aliases = [script_path]
+        script_name, *aliases = self.prog
 
         function = self._generate_function_name(script_name, script_path)
 
@@ -183,7 +223,7 @@ class Completer:
                 "coms": " ".join(sorted(commands_descriptions)),
                 "command_list": "\n".join(command_list),
                 "compdefs": compdefs,
-                "version": __version__
+                "version": __version__,
             }
         )
 
@@ -193,7 +233,7 @@ class Completer:
         template = TEMPLATES["fish"]
 
         script_path = posixpath.realpath(sys.argv[0])
-        script_name = os.path.basename(script_path)
+        script_name = self.prog[0]
 
         function = self._generate_function_name(script_name, script_path)
 
@@ -271,7 +311,7 @@ class Completer:
                 "opts": "\n".join(opts),
                 "cmds": "\n".join(cmds),
                 "cmds_opts": "\n".join(cmds_opts),
-                "version": __version__
+                "version": __version__,
             }
         )
 
@@ -281,7 +321,8 @@ class Completer:
         template = TEMPLATES["powershell"]
 
         script_path = posixpath.realpath(sys.argv[0])
-        script_name = os.path.basename(script_path)
+        script_name = self.prog[0]
+        aliases = self.prog
 
         function = self._generate_function_name(script_name, script_path)
 
@@ -311,10 +352,11 @@ class Completer:
             {
                 "script_name": script_name,
                 "function": function,
+                "aliases": ", ".join(f'"{name}"' for name in aliases),
                 "opts": opts,
                 "coms": coms,
                 "command_list": "\n".join(command_list),
-                "version": __version__
+                "version": __version__,
             }
         )
 

@@ -3,7 +3,8 @@ import click
 import click.testing
 import pytest
 
-from pycomplete import Completer, NotSupportedError
+from pycomplete import Completer, NotSupportedError, _get_prog_name
+from pycomplete.__main__ import load_cli
 
 
 @pytest.fixture()
@@ -138,3 +139,32 @@ def test_click_subcommand_integration(click_command, monkeypatch):
     assert 'opts=("--file:File to be write into")' in output
     assert 'coms=("completion:Print completion script" "list:List files")' in output
     assert 'opts=("--all:Include hidden files")' in output
+
+
+def test_guess_prog_name():
+    assert "pytest" in _get_prog_name("pytest")
+    assert "py.test" in _get_prog_name("pytest")
+    assert "pip" in _get_prog_name("pip._internal.cli.main")
+
+
+def test_load_cli_object():
+    from pytest import console_main
+
+    assert load_cli("pytest:console_main") is console_main
+    assert isinstance(
+        load_cli("pycomplete.__main__:create_parser()"), argparse.ArgumentParser
+    )
+
+
+def test_load_illegal_cli_object():
+    with pytest.raises(ValueError):
+        load_cli("pycomplete")
+
+    with pytest.raises(ValueError):
+        load_cli("pycomplete:=1")
+
+    with pytest.raises(ValueError):
+        load_cli("pycomplete:{'a': 1}")
+
+    with pytest.raises(ValueError):
+        load_cli("pycomplete:foo")

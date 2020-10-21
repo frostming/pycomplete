@@ -7,7 +7,7 @@ if ((Test-Path Function:\TabExpansion) -and -not (Test-Path Function:\%{function
 
 function TabExpansion($line, $lastWord) {
     $lastBlock = [regex]::Split($line, '[|;]')[-1].TrimStart()
-    $aliases = @("%{script_name}") + @(Get-Alias | where { $_.Definition -eq "%{script_name}" } | select -Exp Name)
+    $aliases = @(%{aliases})
     $aliasPattern = "($($aliases -join '|'))"
     if ($lastBlock -match "^$aliasPattern ") {
         $command = ($lastBlock.Split() | Where-Object { $_ -NotLike "-*" })[1]
