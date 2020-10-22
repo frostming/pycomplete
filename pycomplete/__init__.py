@@ -12,43 +12,6 @@ from pycomplete.getters import GETTERS, NotSupportedError
 __version__ = "0.3.0"
 
 
-def _get_prog_name(module: Optional[str] = None) -> List[str]:
-    if not module:
-        return [os.path.basename(os.path.realpath(sys.argv[0]))]
-
-    try:
-        import importlib.metadata as imp_metadata
-    except ModuleNotFoundError:
-        try:
-            import importlib_metadata as imp_metadata
-        except ModuleNotFoundError:
-            imp_metadata = None
-    try:
-        import pkg_resources
-    except ModuleNotFoundError:
-        try:
-            from pip._vendor import pkg_resources
-        except ModuleNotFoundError:
-            pkg_resources = None
-
-    result = []
-
-    if imp_metadata:
-        for dist in imp_metadata.distributions():
-            for entry_point in dist.entry_points:
-                entry_module, _, _ = entry_point.value.partition(":")
-                if entry_point.group == "console_scripts" and entry_module == module:
-                    result.append(entry_point.name)
-    elif pkg_resources:
-        for dist in pkg_resources.working_set:
-            scripts = dist.get_entry_map().get("console_scripts") or {}
-            for _, entry_point in scripts.items():
-                if entry_point.module_name == module:
-                    result.append(entry_point.name)
-    # Fallback to sys.argv[0]
-    return result or [os.path.basename(os.path.realpath(sys.argv[0]))]
-
-
 class Completer:
     """The completer to generate scripts for given shell. Currently only support
     (bash, zsh, fish). If the shell type is not given, the completer will try to guess
@@ -65,7 +28,7 @@ class Completer:
     Then save the result into a file that is read by the shell's autocomplete engine.
     """
 
-    def __init__(self, cli: Any, prog: Optional[str] = None) -> None:
+    def __init__(self, cli: Any, prog: Optional[List[str]] = None) -> None:
         for getter in GETTERS:
             try:
                 self.getter = getter(cli)
@@ -81,9 +44,7 @@ class Completer:
                 "environment as the target CLI app."
             )
         if prog is None:
-            prog = _get_prog_name(getattr(cli, "__module__", None))
-        else:
-            prog = [prog]
+            prog = [os.path.basename(posixpath.realpath(sys.argv[0]))]
         self.prog = prog
 
     def render(self, shell: Optional[str] = None) -> str:
@@ -341,11 +302,11 @@ class Completer:
 
             commands_options[name] = command_options
 
-        opts = ", ".join(f'"{option}"' for option in global_options)
-        coms = ", ".join(f'"{cmd}"' for cmd in commands)
+        opts = ", ".join(f'"{option}"' for option in sorted(global_options))
+        coms = ", ".join(f'"{cmd}"' for cmd in sorted(commands))
         command_list = []
         for name, options in commands_options.items():
-            cmd_opts = ", ".join(f'"{option}"' for option in options)
+            cmd_opts = ", ".join(f'"{option}"' for option in sorted(options))
             command_list.append(f'                "{name}" {{ $opts = @({cmd_opts}) }}')
 
         return template.safe_substitute(

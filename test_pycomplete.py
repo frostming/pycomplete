@@ -3,8 +3,8 @@ import click
 import click.testing
 import pytest
 
-from pycomplete import Completer, NotSupportedError, _get_prog_name
-from pycomplete.__main__ import load_cli
+from pycomplete import Completer, NotSupportedError
+from pycomplete.__main__ import load_cli, get_prog_name
 
 
 @pytest.fixture()
@@ -142,9 +142,9 @@ def test_click_subcommand_integration(click_command, monkeypatch):
 
 
 def test_guess_prog_name():
-    assert "pytest" in _get_prog_name("pytest")
-    assert "py.test" in _get_prog_name("pytest")
-    assert "pip" in _get_prog_name("pip._internal.cli.main")
+    assert "pytest" in get_prog_name("pytest")
+    assert "py.test" in get_prog_name("pytest")
+    assert "pip" in get_prog_name("pip._internal.cli.main")
 
 
 def test_load_cli_object():

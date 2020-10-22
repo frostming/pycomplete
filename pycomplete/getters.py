@@ -103,6 +103,8 @@ if click:
             for param in self._cli.get_params(ctx):
                 if param.get_help_record(ctx):
                     yield max(param.opts, key=len), param.help
+                    if param.secondary_opts:
+                        yield max(param.secondary_opts, key=len), param.help
 
         def get_commands(self) -> Dict[str, "ClickGetter"]:
             commands = getattr(self._cli, "commands", {})

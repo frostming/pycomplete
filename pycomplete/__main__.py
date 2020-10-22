@@ -1,9 +1,11 @@
 import ast
 import importlib
+import os
+import sys
 from argparse import ArgumentParser
-from typing import Any
+from typing import Any, List
 
-from pycomplete import __version__, Completer
+from pycomplete import Completer, __version__
 
 
 def create_parser() -> ArgumentParser:
@@ -81,10 +83,50 @@ def load_cli(import_str: str) -> Any:
     return app
 
 
+def get_prog_name(module: str) -> List[str]:
+    """Get the program name from the given module name."""
+    if not module:
+        return [os.path.basename(os.path.realpath(sys.argv[0]))]
+
+    try:
+        import importlib.metadata as imp_metadata
+    except ModuleNotFoundError:
+        try:
+            import importlib_metadata as imp_metadata
+        except ModuleNotFoundError:
+            imp_metadata = None
+    try:
+        import pkg_resources
+    except ModuleNotFoundError:
+        try:
+            from pip._vendor import pkg_resources
+        except ModuleNotFoundError:
+            pkg_resources = None
+
+    result = []
+
+    if imp_metadata:
+        for dist in imp_metadata.distributions():
+            for entry_point in dist.entry_points:
+                entry_module, _, _ = entry_point.value.partition(":")
+                if entry_point.group == "console_scripts" and entry_module == module:
+                    result.append(entry_point.name)
+    elif pkg_resources:
+        for dist in pkg_resources.working_set:
+            scripts = dist.get_entry_map().get("console_scripts") or {}
+            for _, entry_point in scripts.items():
+                if entry_point.module_name == module:
+                    result.append(entry_point.name)
+    # Fallback to sys.argv[0]
+    return result or [os.path.basename(os.path.realpath(sys.argv[0]))]
+
+
 def main(argv=None):
     args = create_parser().parse_args(argv)
     cli = load_cli(args.cli)
-    completer = Completer(cli, prog=args.prog)
+    completer = Completer(
+        cli, prog=[args.prog] if args.prog else get_prog_name(args.cli.split(":")[0])
+    )
     print(completer.render(args.shell))
 
 
