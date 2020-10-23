@@ -9,7 +9,7 @@ from typing import Any, List, Optional
 from pycomplete.templates import SUPPORTED_SHELLS, TEMPLATES
 from pycomplete.getters import GETTERS, NotSupportedError
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 
 class Completer:
