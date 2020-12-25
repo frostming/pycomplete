@@ -1,34 +1,34 @@
-[tool]
-[tool.pdm]
-name = "pycomplete"
-version = {from = "pycomplete/__init__.py"}
-description = "A Python library to generate static completion scripts for your CLI app"
-author = "Frost Ming <mianghong@gmail.com>"
-license = "BSD-3-Clause"
-homepage = "https://github.com/frostming/pycomplete"
-python_requires = ">=3.6"
-readme = "README.md"
-keywords = ["cli", "shell"]
-
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9"
-]
-
-[tool.pdm.dependencies]
-
-[tool.pdm.dev-dependencies]
-pytest = "<7.0.0,>=6.1.1"
-click = "<8.0.0,>=7.1.2"
-
-[tool.pdm.cli]
-pycomplete = "pycomplete.__main__:main"
-
 [build-system]
 requires = ["pdm-pep517"]
 build-backend = "pdm.pep517.api"
+
+[project]
+# PEP 621 project metadata
+# See https://www.python.org/dev/peps/pep-0621/
+authors = [
+    {name = "Frost Ming", email = "mianghong@gmail.com"},
+]
+dynamic = ["version", "classifiers"]
+version = {from = "pycomplete/__init__.py"}
+requires-python = ">=3.6"
+license = {text = "BSD-3-Clause"}
+dependencies = []
+dev-dependencies = [
+    "pytest<7.0.0,>=6.1.1",
+    "click<8.0.0,>=7.1.2",
+]
+name = "pycomplete"
+description = "A Python library to generate static completion scripts for your CLI app"
+readme = "README.md"
+keywords = ["cli", "shell"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+]
+
+[project.urls]
+Homepage = "https://github.com/frostming/pycomplete"
+
+[project.optional-dependencies]
+
+[project.scripts]
+pycomplete = "pycomplete.__main__:main"

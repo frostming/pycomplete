@@ -5,7 +5,7 @@
 
 %{function}()
 {
-    local state com cur
+    local state com cur opts
 
     cur=${words[${#words[@]}]}
 
