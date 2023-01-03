@@ -5,6 +5,7 @@ import pycomplete
 
 parser = argparse.ArgumentParser(__name__)
 parser.add_argument("-V", "--version", action="version", version="0.1.0")
+parser.add_argument("--choices", type=str, choices=['foo', 'bar', 'baz'])
 subparsers = parser.add_subparsers()
 subparser = subparsers.add_parser(
     "completion", description="Show completion script for given shell"

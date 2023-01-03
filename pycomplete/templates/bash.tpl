@@ -3,9 +3,9 @@
 
 %{function}()
 {
-    local cur script coms opts com
+    local cur script coms opts com prev choices
     COMPREPLY=()
-    _get_comp_words_by_ref -n : cur words
+    _get_comp_words_by_ref -n : cur prev words
 
     # for an alias, get the real script behind it
     if [[ $(type -t ${words[0]}) == "alias" ]]; then
@@ -36,6 +36,18 @@
         __ltrim_colon_completions "$cur"
 
         return 0;
+    fi
+
+    # completing for a choice
+    case "$prev" in
+
+%{option_list}
+
+    esac
+
+    if [[ ! -z "$choices" ]]; then
+        COMPREPLY=( $(compgen -W "$choices" -- ${cur}) )
+        return 0
     fi
 
     # completing for a command
