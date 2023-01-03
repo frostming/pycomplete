@@ -1,6 +1,6 @@
 import abc
 import argparse
-from typing import Dict, Iterable, Tuple, Union
+from typing import Dict, Iterable, List, Tuple, Union
 
 try:
     import click
@@ -22,7 +22,7 @@ class BaseGetter(abc.ABC):
     """
 
     @abc.abstractmethod
-    def get_options(self) -> Iterable[Tuple[str, str]]:
+    def get_options(self) -> Iterable[Tuple[str, str, List]]:
         """Return a list of [option_name, option_help] pairs."""
         pass
 
@@ -47,13 +47,13 @@ class ArgparseGetter(BaseGetter):
             raise NotSupportedError("Not supported")
         self._parser = parser
 
-    def get_options(self) -> Iterable[Tuple[str, str]]:
+    def get_options(self) -> Iterable[Tuple[str, str, List]]:
         for action in self._parser._actions:
             if not action.option_strings:
                 continue
             # Prefer the --long-option-name, just compare by the length of the string.
             name = max(action.option_strings, key=len)
-            yield name, action.help
+            yield name, action.help, action.choices
 
     def get_commands(self) -> Dict[str, "ArgparseGetter"]:
         subparsers = next(
@@ -98,13 +98,13 @@ if click:
                 cmd_or_ctx = cmd_or_ctx.parent
             return cmd_or_ctx.command
 
-        def get_options(self) -> Iterable[Tuple[str, str]]:
+        def get_options(self) -> Iterable[Tuple[str, str, List]]:
             ctx = click.Context(self._cli, info_name=self._cli.name)
             for param in self._cli.get_params(ctx):
                 if param.get_help_record(ctx):
-                    yield max(param.opts, key=len), param.help
+                    yield max(param.opts, key=len), param.help, None
                     if param.secondary_opts:
-                        yield max(param.secondary_opts, key=len), param.help
+                        yield max(param.secondary_opts, key=len), param.help, None
 
         def get_commands(self) -> Dict[str, "ClickGetter"]:
             commands = getattr(self._cli, "commands", {})

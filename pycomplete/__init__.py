@@ -67,8 +67,23 @@ class Completer:
         commands = []
         global_options = set()
         commands_options = {}
-        for option, _ in self.getter.get_options():
+        options_choices = {}
+        for option, _, choices in self.getter.get_options():
             global_options.add(option)
+            if choices:
+                options_choices[option] = choices
+
+        option_list = []
+        for option, choices in options_choices.items():
+            choices = [self._zsh_describe(c, None).strip('"') for c in choices]
+
+            desc = [
+                "        {})".format(option),
+                '            choices="{}"'.format(" ".join(choices)),
+                "            ;;",
+            ]
+
+            option_list.append("\n".join(desc))
 
         for name, command in self.getter.get_commands().items():
             command_options = []
@@ -110,6 +125,7 @@ class Completer:
                 "function": function,
                 "opts": " ".join(sorted(global_options)),
                 "coms": " ".join(commands),
+                "option_list": "\n".join(option_list),
                 "command_list": "\n".join(command_list),
                 "compdefs": compdefs,
                 "version": __version__,
