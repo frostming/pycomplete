@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 import hashlib
 import os
 import posixpath
 import re
 import subprocess
 import sys
-from typing import Any, List, Optional
+from typing import Any
 
+from pycomplete.getters import GETTERS, BaseGetter, NotSupportedError
 from pycomplete.templates import SUPPORTED_SHELLS, TEMPLATES
-from pycomplete.getters import GETTERS, NotSupportedError
 
-__version__ = "0.3.2"
+__version__ = "0.4.0"
 
 
 class Completer:
@@ -28,7 +30,7 @@ class Completer:
     Then save the result into a file that is read by the shell's autocomplete engine.
     """
 
-    def __init__(self, cli: Any, prog: Optional[List[str]] = None) -> None:
+    def __init__(self, cli: Any, prog: list[str] | None = None) -> None:
         for getter in GETTERS:
             try:
                 self.getter = getter(cli)
@@ -47,7 +49,7 @@ class Completer:
             prog = [os.path.basename(posixpath.realpath(sys.argv[0]))]
         self.prog = prog
 
-    def render(self, shell: Optional[str] = None) -> str:
+    def render(self, shell: str | None = None) -> str:
         if shell is None:
             shell = self.get_shell_type()
         if shell not in SUPPORTED_SHELLS:
@@ -193,85 +195,101 @@ class Completer:
     def render_fish(self) -> str:
         template = TEMPLATES["fish"]
 
+        def cmd_completion(
+            name: str, command: BaseGetter, parents: list[str]
+        ) -> list[str]:
+            result: list[str] = []
+            parents_join = "_".join(parents)
+            result.append(f"# {' '.join(parents + [name])}")
+            see_parent = "; and ".join(
+                f"__fish_seen_subcommand_from {p}" for p in parents
+            )
+            if not parents:
+                result.append(
+                    "complete -c {} -f -n '__fish{}_no_subcommand' "
+                    "-a {} -d '{}'".format(
+                        script_name, function, name, command.help.replace("'", "\\'")
+                    )
+                )
+            else:
+                no_subcommand = (
+                    f"not __fish_seen_subcommand_from ${parents_join}_subcommands"
+                )
+                result.append(
+                    "complete -c {} -f -n '{}; and {}' -a {} -d '{}'".format(
+                        script_name,
+                        see_parent,
+                        no_subcommand,
+                        name,
+                        command.help.replace("'", "\\'"),
+                    )
+                )
+
+            see_this = f"__fish_seen_subcommand_from {name}"
+            # options
+            for option_name, option_help in sorted(command.get_options()):
+                condition = f"{see_parent}; and {see_this}" if parents else see_this
+                result.append(
+                    "complete -c {} -A -n '{}' -l {} -d '{}'".format(
+                        script_name,
+                        condition,
+                        option_name[2:],
+                        option_help.replace("'", "\\'"),
+                    )
+                )
+            subcommands = command.get_commands()
+            if not subcommands:
+                return result
+            result.append(f"# {name} subcommands")
+            subcommands_var = (
+                f"{parents_join}_{name}_subcommands"
+                if parents
+                else f"{name}_subcommands"
+            )
+            result.append(f"set -l {subcommands_var} {' '.join(sorted(subcommands))}")
+            for i, (subcommand_name, subcommand) in enumerate(
+                sorted(subcommands.items())
+            ):
+                result.extend(
+                    cmd_completion(subcommand_name, subcommand, parents + [name])
+                )
+                if i < len(subcommands) - 1:
+                    result.append("")
+            return result
+
         script_path = posixpath.realpath(sys.argv[0])
         script_name = self.prog[0]
 
         function = self._generate_function_name(script_name, script_path)
 
-        global_options = set()
-        commands_descriptions = {}
-        options_descriptions = {}
-        commands_options_descriptions = {}
-        commands_options = {}
-        for option_name, option_help in self.getter.get_options():
-            options_descriptions[option_name] = option_help
-            global_options.add(option_name)
-
-        for name, command in self.getter.get_commands().items():
-            command_options = []
-            commands_options_descriptions[name] = {}
-            command_description = command.help
-            commands_descriptions[name] = command_description
-
-            for option_name, option_help in command.get_options():
-                command_options.append(option_name)
-                options_descriptions[option_name] = option_help
-                commands_options_descriptions[name][option_name] = option_help
-
-            commands_options[name] = command_options
-
-        opts = []
-        for opt in sorted(global_options):
+        opts: list[str] = []
+        cmd_names: set[str] = set()
+        cmds: list[str] = []
+        for option_name, option_help in sorted(self.getter.get_options()):
             opts.append(
                 "complete -c {} -n '__fish{}_no_subcommand' "
                 "-l {} -d '{}'".format(
                     script_name,
                     function,
-                    opt[2:],
-                    options_descriptions[opt].replace("'", "\\'"),
+                    option_name[2:],
+                    option_help.replace("'", "\\'"),
                 )
             )
 
-        cmds_names = sorted(list(commands_options.keys()))
-
-        cmds = []
-        cmds_opts = []
-        for i, cmd in enumerate(cmds_names):
-            cmds.append(
-                "complete -c {} -f -n '__fish{}_no_subcommand' "
-                "-a {} -d '{}'".format(
-                    script_name,
-                    function,
-                    cmd,
-                    commands_descriptions[cmd].replace("'", "\\'"),
-                )
-            )
-
-            cmds_opts += ["# {}".format(cmd)]
-            options = sorted(commands_options[cmd])
-
-            for opt in options:
-                cmds_opts.append(
-                    "complete -c {} -A -n '__fish_seen_subcommand_from {}' "
-                    "-l {} -d '{}'".format(
-                        script_name,
-                        cmd,
-                        opt[2:],
-                        commands_options_descriptions[cmd][opt].replace("'", "\\'"),
-                    )
-                )
-
-            if i < len(cmds_names) - 1:
-                cmds_opts.append("")
+        all_commands = sorted(self.getter.get_commands().items())
+        for i, (name, command) in enumerate(all_commands):
+            cmd_names.add(name)
+            cmds.extend(cmd_completion(name, command, []))
+            if i < len(all_commands) - 1:
+                cmds.append("")
 
         output = template.safe_substitute(
             {
                 "script_name": script_name,
                 "function": function,
-                "cmds_names": " ".join(cmds_names),
+                "cmds_names": " ".join(sorted(cmd_names)),
                 "opts": "\n".join(opts),
                 "cmds": "\n".join(cmds),
-                "cmds_opts": "\n".join(cmds_opts),
                 "version": __version__,
             }
         )

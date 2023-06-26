@@ -15,7 +15,3 @@ end
 
 # commands
 %{cmds}
-
-# command options
-
-%{cmds_opts}

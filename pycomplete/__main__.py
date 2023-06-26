@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import ast
 import importlib
 import os
 import sys
 from argparse import ArgumentParser
-from typing import Any, List
+from typing import Any
 
 from pycomplete import Completer, __version__
 
@@ -83,7 +85,7 @@ def load_cli(import_str: str) -> Any:
     return app
 
 
-def get_prog_name(module: str) -> List[str]:
+def get_prog_name(module: str) -> list[str]:
     """Get the program name from the given module name."""
     if not module:
         return [os.path.basename(os.path.realpath(sys.argv[0]))]

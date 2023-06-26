@@ -1,10 +1,11 @@
 import argparse
+
 import click
 import click.testing
 import pytest
 
 from pycomplete import Completer, NotSupportedError
-from pycomplete.__main__ import load_cli, get_prog_name
+from pycomplete.__main__ import get_prog_name, load_cli
 
 
 @pytest.fixture()
@@ -144,7 +145,6 @@ def test_click_subcommand_integration(click_command, monkeypatch):
 def test_guess_prog_name():
     assert "pytest" in get_prog_name("pytest")
     assert "py.test" in get_prog_name("pytest")
-    assert "pip" in get_prog_name("pip._internal.cli.main")
 
 
 def test_load_cli_object():

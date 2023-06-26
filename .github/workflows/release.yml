@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: '3.11'
           architecture: "x64"
       - name: Build artifacts
         run: |
-          pip install pep517
-          python -m pep517.build -bso dist .
+          pip install build
+          python -m build
 
       - name: Test build
         run: |

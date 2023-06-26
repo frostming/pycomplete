@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import abc
 import argparse
-from typing import Dict, Iterable, Tuple, Union
+from typing import Iterable
 
 try:
     import click
@@ -22,12 +24,12 @@ class BaseGetter(abc.ABC):
     """
 
     @abc.abstractmethod
-    def get_options(self) -> Iterable[Tuple[str, str]]:
+    def get_options(self) -> Iterable[tuple[str, str]]:
         """Return a list of [option_name, option_help] pairs."""
         pass
 
     @abc.abstractmethod
-    def get_commands(self) -> Dict[str, "BaseGetter"]:
+    def get_commands(self) -> dict[str, BaseGetter]:
         """Return a mapping of command_name -> command getter."""
         pass
 
@@ -47,7 +49,7 @@ class ArgparseGetter(BaseGetter):
             raise NotSupportedError("Not supported")
         self._parser = parser
 
-    def get_options(self) -> Iterable[Tuple[str, str]]:
+    def get_options(self) -> Iterable[tuple[str, str]]:
         for action in self._parser._actions:
             if not action.option_strings:
                 continue
@@ -55,7 +57,7 @@ class ArgparseGetter(BaseGetter):
             name = max(action.option_strings, key=len)
             yield name, action.help
 
-    def get_commands(self) -> Dict[str, "ArgparseGetter"]:
+    def get_commands(self) -> dict[str, BaseGetter]:
         subparsers = next(
             (
                 action
@@ -83,14 +85,14 @@ if click:
         :class:`click.Command` instance
         """
 
-        def __init__(self, cli: Union[click.Command, click.Context]) -> None:
+        def __init__(self, cli: click.Command | click.Context) -> None:
             if not isinstance(cli, (click.Command, click.Context)):
                 raise NotSupportedError("Not supported")
             self._cli = self._get_top_command(cli)
 
         @staticmethod
         def _get_top_command(
-            cmd_or_ctx: Union[click.Command, click.Context]
+            cmd_or_ctx: click.Command | click.Context,
         ) -> click.Command:
             if isinstance(cmd_or_ctx, click.Command):
                 return cmd_or_ctx
@@ -98,7 +100,7 @@ if click:
                 cmd_or_ctx = cmd_or_ctx.parent
             return cmd_or_ctx.command
 
-        def get_options(self) -> Iterable[Tuple[str, str]]:
+        def get_options(self) -> Iterable[tuple[str, str]]:
             ctx = click.Context(self._cli, info_name=self._cli.name)
             for param in self._cli.get_params(ctx):
                 if param.get_help_record(ctx):
@@ -106,7 +108,7 @@ if click:
                     if param.secondary_opts:
                         yield max(param.secondary_opts, key=len), param.help
 
-        def get_commands(self) -> Dict[str, "ClickGetter"]:
+        def get_commands(self) -> dict[str, BaseGetter]:
             commands = getattr(self._cli, "commands", {})
             return {
                 name: ClickGetter(cmd)
